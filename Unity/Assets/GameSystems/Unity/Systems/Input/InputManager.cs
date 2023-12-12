@@ -1,10 +1,9 @@
 using System;
-using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class InputManager : IJumpInput
 {
-    private CustomInput input = new();
+    private readonly CustomInput input = new();
 
     public event Action JumpEvent;
 
