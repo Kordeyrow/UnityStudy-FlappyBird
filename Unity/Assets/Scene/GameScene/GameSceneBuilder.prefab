@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8581823192326217820}
   - component: {fileID: 5209505505936469833}
   m_Layer: 0
-  m_Name: MainSceneBuilder
+  m_Name: GameSceneBuilder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

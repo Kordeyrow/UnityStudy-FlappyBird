@@ -1,7 +1,7 @@
 using UnityEngine;
 using Zenject;
 
-public class MainSceneBuilder : MonoInstaller
+public class GameSceneBuilder : MonoInstaller
 {
     [Header("> GameObjects")]
     [RequireInterface(typeof(IPlayer))]
