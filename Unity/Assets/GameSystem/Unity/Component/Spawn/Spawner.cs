@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 
 public class Spawner : MonoBehaviour
 {
@@ -36,7 +37,7 @@ public class Spawner : MonoBehaviour
         for (int i = 0; i < poolSize; i++)
         {
             var newSpawnObj = Instantiate(prefab);
-            newSpawnObj.name = newSpawnObj.name + i;
+            newSpawnObj.name += i;
             newSpawnObj.transform.SetParent(poolContainer.transform);
             var ISpawn = newSpawnObj.GetComponent<ISpawn>();
             SendObjToSpawnPool(ISpawn);
@@ -64,21 +65,35 @@ public class Spawner : MonoBehaviour
 
     void Spawn()
     {
-        if (useAllSpawnPointsPerSpawn)
-        {
-            Vector3 randomOffsetV3 = new(randomOffset.x * RandomMinusOneToPlusOne, randomOffset.y * RandomMinusOneToPlusOne, 0);
-            foreach (var spawnPoint in spawnPoints)
-            {
-                if (spawnPool.Count == 0)
-                    return;
+        var randomOffset = RandomOffset();
 
-                var obj = spawnPool.Pop();
-                obj.OnReadyToBackToPool += OnSpawnObjReadyToPool;
-                var spawnPos = spawnPoint.transform.position + randomOffsetV3;
-                obj.Activate(spawnPos);
-            }
+        var nextSpawnPoints = NextSpawnPoints();
+
+        var lastIndex = nextSpawnPoints.Length - 1;
+        var isSpawnGroupLeader = false;
+        for (int i = 0; i <= lastIndex; i++)
+        {
+            if (spawnPool.Count == 0)
+                return;
+
+            var obj = spawnPool.Pop();
+            var randomOffsetedSpawnPos = nextSpawnPoints[i].transform.position + randomOffset;
+            if (i == lastIndex)
+                isSpawnGroupLeader = true;
+            obj.Activate(randomOffsetedSpawnPos, isSpawnGroupLeader);
+            obj.OnReadyToBackToPool += OnSpawnObjReadyToPool;
         }
     }
+
+    GameObject[] NextSpawnPoints()
+    {
+        if (useAllSpawnPointsPerSpawn)
+            return spawnPoints;
+
+        return new GameObject[] { spawnPoints[Random.Range(0, spawnPoints.Length)] };
+    }
+
+    Vector3 RandomOffset() => new(randomOffset.x * RandomMinusOneToPlusOne, randomOffset.y * RandomMinusOneToPlusOne, 0);
 
     void OnSpawnObjReadyToPool(ISpawn obj)
     {

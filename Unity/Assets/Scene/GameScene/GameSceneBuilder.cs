@@ -6,6 +6,7 @@ public class GameSceneBuilder : MonoInstaller
     [Header("> GameObjects")]
     [RequireInterface(typeof(IPlayer))]
     [SerializeField] Object playerObj;
+    [SerializeField] GameObject obstacle;
     [SerializeField] GameObject mainCamera;
 
     public override void InstallBindings()
@@ -19,7 +20,7 @@ public class GameSceneBuilder : MonoInstaller
 
 
         /// __ GAMEOBJECTS __ /// 
-        
+
         // Player
         var playerInstance = Container.InstantiatePrefab(playerObj);
         var player = playerInstance.GetComponent<Player>();
@@ -29,5 +30,27 @@ public class GameSceneBuilder : MonoInstaller
 
         // Camera
         Container.InstantiatePrefab(mainCamera);
+    }
+}
+
+public interface ISpawnFactory
+{
+    GameObject Create();
+}
+
+public class SpawnFactory : ISpawnFactory
+{
+    readonly DiContainer container;
+    readonly GameObject prefab;
+
+    public SpawnFactory(DiContainer container, GameObject prefab)
+    {
+        this.container = container;
+        this.prefab = prefab;
+    }
+
+    public GameObject Create()
+    {
+        return container.InstantiatePrefab(prefab);
     }
 }
