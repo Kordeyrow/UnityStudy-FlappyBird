@@ -10,7 +10,7 @@ public class Player : MonoBehaviour, IPlayer
     [SerializeField] Jump2DRB jump;
     IJump2D jump2D;
     
-    Service<IPlayer?> IPlayerService => PlayerService.Instance;
+    ServiceContainer<IPlayer?> IPlayerService => PlayerServiceContainer.Instance;
 
     public event Action OnDie;
     public event Action<int> OnPointsUpdated;
@@ -21,7 +21,16 @@ public class Player : MonoBehaviour, IPlayer
     private void Awake()
     {
         jump2D = GetComponent<IJump2D>();
-        IPlayerService.UpdateService(this);
+    }
+
+    private void OnEnable()
+    {
+        IPlayerService.SetService(this);
+    }
+
+    private void OnDisable()
+    {
+        IPlayerService.RemoveService(this);
     }
 
     void Start()

@@ -2,8 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject.SpaceFighter;
 
-public class PipeObstacle : MonoBehaviour, ISpawn
+public class PipeObstacle : MonoBehaviour, ISpawn, IServiceContainerConsumer<IPlayer>
 {
     [SerializeField] int pointsToAddWhenPassByPlayer = 1;
     [SerializeField] float minXCoord;
@@ -16,13 +17,7 @@ public class PipeObstacle : MonoBehaviour, ISpawn
 
     readonly Dictionary<IEnumerator, Coroutine> coroutineFromIEnumerator = new();
 
-    Service<IPlayer?> IPlayerService => PlayerService.Instance;
-    ConsumerConnection<IPlayer?> playerServiceConsumerConnection;
-
-    private void Awake()
-    { 
-        playerServiceConsumerConnection = new(ConnectPlayerService, DisconnectPlayerService);
-    }
+    ServiceContainer<IPlayer?> playerServiceContainer => PlayerServiceContainer.Instance;
 
     void ISpawn.Activate(Vector3 pos, bool isSpawnGroupLeader)
     {
@@ -49,21 +44,7 @@ public class PipeObstacle : MonoBehaviour, ISpawn
 
         /// Services setup
 
-        IPlayerService.AddConsumer(playerServiceConsumerConnection);
-    }
-
-    void ConnectPlayerService(IPlayer? player)
-    {
-        if (player == null)
-            return;
-        player.OnDie += OnPlayerDied;
-    }
-
-    void DisconnectPlayerService(IPlayer? player)
-    {
-        if (player == null)
-            return;
-        player.OnDie -= OnPlayerDied;
+        playerServiceContainer.AddConsumer(this);
     }
 
     void OnPlayerDied()
@@ -85,7 +66,16 @@ public class PipeObstacle : MonoBehaviour, ISpawn
         SafeStopCoroutine(CheckingForReadyToDeactivate());
         SafeStopCoroutine(CheckingForPlayerPassedBy());
 
-        IPlayerService.RemoveConsumer(playerServiceConsumerConnection);
+        playerServiceContainer.RemoveConsumer(this);
+    }
+
+    void IServiceContainerConsumer<IPlayer>.OnServiceUpdated(IPlayer oldService, IPlayer newPlayer)
+    {
+        if (oldService != null)
+            oldService.OnDie -= OnPlayerDied;
+
+        if (newPlayer != null)
+            newPlayer.OnDie += OnPlayerDied;
     }
 
     void SafeStopCoroutine(IEnumerator ie)
@@ -129,7 +119,7 @@ public class PipeObstacle : MonoBehaviour, ISpawn
 
     bool HasPlayerPassedBy()
     {
-        IPlayer player = IPlayerService.GetService();
+        IPlayer player = playerServiceContainer.GetService();
         if (player == null)
             return false;
         return RightMostPosition().x < player.LeftMostPosition().x;
@@ -142,7 +132,7 @@ public class PipeObstacle : MonoBehaviour, ISpawn
 
     void AddPointToPlayer()
     {
-        IPlayer player = IPlayerService.GetService();
+        IPlayer player = playerServiceContainer.GetService();
         if (player == null)
             return;
         player.AddPoints(pointsToAddWhenPassByPlayer);
@@ -162,4 +152,5 @@ public class PipeObstacle : MonoBehaviour, ISpawn
     }
 
     bool IsReadyToDeactivate() => transform.position.x < minXCoord;
+
 }
