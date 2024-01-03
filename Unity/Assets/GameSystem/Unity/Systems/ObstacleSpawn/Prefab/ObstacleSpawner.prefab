@@ -78,16 +78,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff0688053d7271e4f9ca2131c247107f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sceneBounds: {fileID: 0}
   prefab: {fileID: 4984592257941442041, guid: a1d277d501fbea941afc6b6e121f1b9a, type: 3}
   poolContainer: {fileID: 9051137715741774031}
   spawnPoints:
   - {fileID: 1276260619255315513}
   - {fileID: 7086647777228293469}
-  distanceToCenter: 4.2
+  yDistanceToCenter: 3.8
   useAllSpawnPointsPerSpawn: 1
   poolSize: 20
   delay: 1.7
-  randomOffset: {x: 0, y: 1.5}
+  randomOffset: {x: 0, y: 1}
 --- !u!1 &7086647777228293469
 GameObject:
   m_ObjectHideFlags: 0

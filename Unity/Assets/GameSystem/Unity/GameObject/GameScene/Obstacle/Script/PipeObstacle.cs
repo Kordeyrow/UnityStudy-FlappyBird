@@ -2,22 +2,22 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Zenject.SpaceFighter;
 
 public class PipeObstacle : MonoBehaviour, ISpawn, IServiceContainerConsumer<IPlayer>
 {
     [SerializeField] int pointsToAddWhenPassByPlayer = 1;
     [SerializeField] float minXCoord;
-    [SerializeField] CollisionEventEmitter collisionEventEmitter;
-    [SerializeField] SpriteRenderer spriteRenderer;
-    [SerializeField] Collider2D collider2D;
+    [SerializeField] CollisionEventEmitter[] collisionEventEmitters;
+    [SerializeField] SpriteRenderer[] spriteRenderers;
+    [SerializeField] Collider2D col2D;
     [SerializeField] Movement2DTransform movement;
 
     public event Action<ISpawn> OnReadyToBackToPool;
-
     readonly Dictionary<IEnumerator, Coroutine> coroutineFromIEnumerator = new();
-
     ServiceContainer<IPlayer?> playerServiceContainer => PlayerServiceContainer.Instance;
+    ServiceContainer<ISceneBounds?> sceneBoundsServiceContainer => SceneBoundsServiceContainer.Instance;
+
+    bool flipped;
 
     void ISpawn.Activate(Vector3 pos, bool isSpawnGroupLeader)
     {
@@ -26,15 +26,18 @@ public class PipeObstacle : MonoBehaviour, ISpawn, IServiceContainerConsumer<IPl
 
         transform.position = pos;
 
-        collider2D.enabled = true;
-        spriteRenderer.enabled = true;
+        col2D.enabled = true;
+
+        foreach (var s in spriteRenderers)
+            s.enabled = true;
 
         movement.StartMoving();
 
-        collisionEventEmitter.OnCollide += OnCollide;
-
+        foreach (var c in collisionEventEmitters)
+            c.OnCollide += OnCollide;
 
         /// Coroutines setup
+        /// 
 
         SafeStartCoroutine(CheckingForReadyToDeactivate());
 
@@ -43,6 +46,7 @@ public class PipeObstacle : MonoBehaviour, ISpawn, IServiceContainerConsumer<IPl
 
 
         /// Services setup
+        /// 
 
         playerServiceContainer.AddConsumer(this);
     }
@@ -54,14 +58,21 @@ public class PipeObstacle : MonoBehaviour, ISpawn, IServiceContainerConsumer<IPl
 
     void ISpawn.Deactivate()
     {
+        if (flipped)
+            UnFlip();
+
         transform.position = Vector3.zero;
 
-        collider2D.enabled = false;
-        spriteRenderer.enabled = false;
+        col2D.enabled = false;
+        foreach (var s in spriteRenderers)
+            s.enabled = false;
 
         movement.StopMoving();
 
-        collisionEventEmitter.OnCollide -= OnCollide;
+        foreach (var c in collisionEventEmitters)
+        {
+            c.OnCollide -= OnCollide;
+        }
 
         SafeStopCoroutine(CheckingForReadyToDeactivate());
         SafeStopCoroutine(CheckingForPlayerPassedBy());
@@ -93,9 +104,12 @@ public class PipeObstacle : MonoBehaviour, ISpawn, IServiceContainerConsumer<IPl
 
     void OnCollide(GameObject other)
     {
-        if (other.TryGetComponent<IPlayer>(out var IPlayer))
+        if (other.TryGetComponent<IColliderOwnerContainer>(out var IColliderOwnerContainer))
         {
-            IPlayer.Die();
+            if (IColliderOwnerContainer.Owner.TryGetComponent<IPlayer>(out var IPlayer))
+            {
+                IPlayer.Die();
+            }
         }
     }
 
@@ -151,6 +165,26 @@ public class PipeObstacle : MonoBehaviour, ISpawn, IServiceContainerConsumer<IPl
         }
     }
 
-    bool IsReadyToDeactivate() => transform.position.x < minXCoord;
+    bool IsReadyToDeactivate() => IsOutOfScreenBoundsLeft();
 
+    bool IsOutOfScreenBoundsLeft()
+    {
+        var sceneBounds = sceneBoundsServiceContainer.GetService();
+        if (sceneBounds == null)
+            return false;
+
+        return sceneBounds.OuterBounds(col2D).Contains(EOuterBounds.Left);
+    }
+
+    public void Flip()
+    {
+        transform.localScale *= -1;
+        flipped = true;
+    }
+
+    public void UnFlip()
+    {
+        transform.localScale *= -1;
+        flipped = false;
+    }
 }

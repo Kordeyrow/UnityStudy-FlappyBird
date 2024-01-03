@@ -78,4 +78,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerObj: {fileID: 8234787674422770113, guid: 205b0f4e4a133a549b1c4520e2341189, type: 3}
-  mainCamera: {fileID: 2436288315845554901, guid: cd1b19ba9b68ccb49a6ddf6d77b5f884, type: 3}
+  obstacle: {fileID: 4984592257941442041, guid: a1d277d501fbea941afc6b6e121f1b9a, type: 3}

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityLayer;
 using Zenject;
@@ -9,6 +10,7 @@ public class Jump2DRB : MonoBehaviour, IJump2D
     Rigidbody2D rb;
     IJumpInput jumpInput;
     bool activated = true;
+    public event Action OnExecute;
 
     [Inject]
     public void Construct(IJumpInput jumpInput)
@@ -28,6 +30,7 @@ public class Jump2DRB : MonoBehaviour, IJump2D
             return;
         rb.velocity = Vector2.zero;
         rb.AddForce(Vector2.up * force);
+        OnExecute.Invoke();
     }
 
     public void Deactivate()

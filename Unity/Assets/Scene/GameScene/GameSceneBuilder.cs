@@ -7,7 +7,7 @@ public class GameSceneBuilder : MonoInstaller
     [RequireInterface(typeof(IPlayer))]
     [SerializeField] Object playerObj;
     [SerializeField] GameObject obstacle;
-    [SerializeField] GameObject mainCamera;
+    //[SerializeField] GameObject mainCamera;
 
     public override void InstallBindings()
     {
@@ -29,7 +29,7 @@ public class GameSceneBuilder : MonoInstaller
             .NonLazy();
 
         // Camera
-        Container.InstantiatePrefab(mainCamera);
+        //Container.InstantiatePrefab(mainCamera);
     }
 }
 
